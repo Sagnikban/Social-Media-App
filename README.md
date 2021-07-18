@@ -1,6 +1,6 @@
 # untitled
 
-A new Flutter project.
+A new Flutter project.Instagram clone.
 
 ## Getting Started
 
