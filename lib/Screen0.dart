@@ -46,7 +46,7 @@ class Screen0 extends StatelessWidget {
               FlatButton(
                 onPressed:()
                   {
-                     Navigator.pushNamed(context,'/three');
+                     Navigator.pushNamed(context,'/second');
                   },
                child: Container (
                 padding: EdgeInsets.fromLTRB(110,25,50,30),

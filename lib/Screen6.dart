@@ -12,6 +12,7 @@ class Screen6 extends StatelessWidget {
 
        home:Scaffold(
           body:SafeArea(
+
             child:Column(
               children:<Widget>
                 [

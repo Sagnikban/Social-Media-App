@@ -1,80 +1,110 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'Screen1.dart';
-class Screen2 extends StatelessWidget {
-  // This widget is the root of your application.
+class Screen2 extends StatefulWidget {
+  const Screen2({Key? key}) : super(key: key);
+
+  @override
+  _Screen2State createState() => _Screen2State();
+}
+
+class _Screen2State extends State<Screen2> {
+  final _auth=FirebaseAuth.instance;
+  late String email;
+  late String password;
+  late String username;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
         body:SafeArea(
+        child:SingleChildScrollView(
           child: Column(
 
             children: <Widget>
             [
 
-                Image(
-                  image: AssetImage('assets/instagram_logo.png'),
-                  width: 340,
-                  height: 60,
+              Image(
+                image: AssetImage('assets/instagram_logo.png'),
+                width: 340,
+                height: 60,
 
+              ),
+              SizedBox(height:40),
+              TextField(
+                onChanged: (value){
+                  username=value;
+                  },
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Username',
                 ),
-                   SizedBox(height:40),
-              Container(
-                margin: EdgeInsets.only(left:10),
-                padding: EdgeInsets.fromLTRB(20,17,50,10),
-                color: Color(0xffe8e8e8),
-
-                child:Text('Username',style:TextStyle(fontSize:25,color:Colors.black38 )),
-                width:350,
-                height:50,
-
               ),
               SizedBox(height:10),
-              Container(
-                margin: EdgeInsets.only(left:10),
-                padding: EdgeInsets.fromLTRB(20,17,50,10),
-                color: Color(0xffe8e8e8),
-
-                child:Text('Password',style:TextStyle(fontSize:25,color:Colors.black38 )),
-                width:350,
-                height:50,
-
+              TextField(
+                onChanged:(value){
+                  password=value;
+                },
+                obscureText: true,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Password',
+                ),
               ),
               SizedBox(height:10),
-              Container(
-                margin: EdgeInsets.only(left:10),
-                padding: EdgeInsets.fromLTRB(20,17,50,10),
-                color: Color(0xffe8e8e8),
+              TextField(
 
-                child:Text('Confirm Password',style:TextStyle(fontSize:25,color:Colors.black38 )),
-                width:350,
-                height:50,
-
+                obscureText: true,
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Confirm Password'
+                ),
               ),
               SizedBox(height:10),
-              Container(
 
-                margin: EdgeInsets.only(left:10),
-                padding: EdgeInsets.fromLTRB(20,17,50,10),
-                color: Color(0xffe8e8e8),
-
-                child:Text('Email ID',style:TextStyle(fontSize:25,color:Colors.black38 )),
-                width:350,
-                height:50,
-
+              TextField(
+                onChanged:(value){
+                  email=value;
+                },
+                keyboardType:TextInputType.emailAddress,
+                decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Email ID'
+                ),
               ),
               SizedBox(height:20),
-              Container(
 
-                margin: EdgeInsets.only(left:10),
-                padding: EdgeInsets.fromLTRB(130,17,50,10),
 
-                color: Colors.blue,
-                child:Text('Sign Up',style:TextStyle(fontSize:25,color:Colors.white)),
-                width:350,
-                height:70,
+              FlatButton(
+                onPressed:()async{
 
+                  try {
+                   final newuser = await _auth.createUserWithEmailAndPassword(
+                        email: email.trim(), password: password);
+
+                   if(newuser!=Null)
+                   {
+                       Navigator.popAndPushNamed(context, ' /first');
+                   }
+                  }
+                  catch(e){
+                    print(e);
+                  }
+
+                },
+                child:Container(
+
+                  padding: EdgeInsets.fromLTRB(130,17,50,10),
+                  margin: EdgeInsets.only(left:10),
+
+                  color: Colors.blue,
+                  child:Text('Sign Up',style:TextStyle(fontSize:25,color:Colors.white)),
+                  width:350,
+                  height:70,
+
+                ),
               ),
 
               SizedBox(height:35),
@@ -139,6 +169,7 @@ class Screen2 extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }
