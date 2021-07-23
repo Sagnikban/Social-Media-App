@@ -2,30 +2,33 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'Screen1.dart';
 class Screen2 extends StatefulWidget {
   const Screen2({Key? key}) : super(key: key);
-
   @override
   _Screen2State createState() => _Screen2State();
 }
-
 class _Screen2State extends State<Screen2> {
-  final _auth=FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+  var _auth=FirebaseAuth.instance;
+  late var currentUser=_auth.currentUser;
   late String email;
   late String password;
   late String username;
+  bool showSpinner=false;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
         body:SafeArea(
+          child:ModalProgressHUD(
+        inAsyncCall:showSpinner ,
         child:SingleChildScrollView(
           child: Column(
-
             children: <Widget>
             [
-
               Image(
                 image: AssetImage('assets/instagram_logo.png'),
                 width: 340,
@@ -75,24 +78,27 @@ class _Screen2State extends State<Screen2> {
                 ),
               ),
               SizedBox(height:20),
-
-
               FlatButton(
                 onPressed:()async{
-
+                  setState(() {
+                    showSpinner=true;
+                  });
                   try {
-                   final newuser = await _auth.createUserWithEmailAndPassword(
-                        email: email.trim(), password: password);
+                  await _auth.createUserWithEmailAndPassword(
+                        email: email, password: password);
 
-                   if(newuser!=Null)
-                   {
-                       Navigator.popAndPushNamed(context, ' /first');
-                   }
+                       Navigator.pushNamed(context,'/first');
+                       setState(() {
+                     showSpinner=false;
+                   });
                   }
                   catch(e){
                     print(e);
                   }
-
+                            _firestore.collection('users').add({
+                                     'email':currentUser!.email!,
+                                     'username':username!,
+                            }   );
                 },
                 child:Container(
 
@@ -169,6 +175,7 @@ class _Screen2State extends State<Screen2> {
             ],
           ),
         ),
+      ),
       ),
       ),
     );
