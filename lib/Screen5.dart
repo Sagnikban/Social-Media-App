@@ -1,10 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'Screen3.dart';
 import 'Screen4.dart';
 import 'Screen5.dart';
+class  Screen5 extends StatefulWidget {
+  const Screen5(
+      {Key? key})
+      : super(key: key);
+  @override
+  _Screen5State createState() => _Screen5State();
+}
 
-class  Screen5 extends StatelessWidget {
+class _Screen5State extends State<Screen5> {
+  var _auth = FirebaseAuth.instance;
+  late  String username="sagnik";
+  late String bio="";
+   getdetails () async {
+    late var currentUser = _auth.currentUser;
+
+    if (currentUser != null) {
+      var uid = await currentUser!.uid;
+      await FirebaseFirestore.instance
+          .collection('users')
+          .where('uid', isEqualTo: uid)
+          .get()
+          .then((QuerySnapshot querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+        setState(() {
+          username = doc['username'];
+          bio=doc['bio'];
+
+        });
+        });
+      });
+
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getdetails();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +58,9 @@ class  Screen5 extends StatelessWidget {
          SizedBox(height:40),
          Container(
            padding:EdgeInsets.only(left:50),
-            child:Text('jacob_w' ),
+            child:Text("      ${username}" ),
          ),
-         SizedBox(height:40),
+         SizedBox(height:40)  ,
          Row(
              children:<Widget>
              [
@@ -52,36 +92,31 @@ class  Screen5 extends StatelessWidget {
 
          ),
               Container(height:20),
+
           Row(
 
             children:<Widget>
-              [
-                Text('    Jacob West'),
-              ]
+            [
+               Text("      ${username}"),
+           ]
           ),
 
          Row(
 
              children:<Widget>
              [
-               Text('    Digital Goodies Desginer'),
-             ]
-         ),
-         Row(
-
-             children:<Widget>
-             [
-               Text('    Everything is desgined'),
+               Text('       ${bio}'),
              ]
          ),
 
-         SizedBox(height:20),
+
+         SizedBox(height:50),
          FlatButton
            (
 
            onPressed:()
            {
-
+             Navigator.pushNamed(context,'/seven');
            },
 
            child:  Container(
@@ -212,4 +247,7 @@ class  Screen5 extends StatelessWidget {
 
     );
   }
+
+
+
 }

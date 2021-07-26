@@ -16,19 +16,10 @@ class Screen1 extends StatefulWidget {
 class _Screen1State extends State<Screen1> {
   String password = "";
   String email = "";
-
   final _auth = FirebaseAuth.instance;
   bool showSpinner = false;
 
-  void messageStream() async {
-    await for (var snapshot in FirebaseFirestore.instance.collection('users')
-        .snapshots()) {
-      for (var message in snapshot.docs)
-        print(message.data);
-    }
-  }
-
-    @override
+  @override
     Widget build(BuildContext context) {
       return MaterialApp(
           home: Scaffold(
@@ -55,7 +46,7 @@ class _Screen1State extends State<Screen1> {
                                   },
                                   decoration: InputDecoration(
                                     border: OutlineInputBorder(),
-                                    labelText: 'Username',
+                                    labelText: 'Email',
                                   ),
                                 ),
 
@@ -91,7 +82,7 @@ class _Screen1State extends State<Screen1> {
                                     setState(() {
                                       showSpinner = true;
                                     });
-                                    messageStream();
+
                                     try {
                                       final user = await _auth
                                           .signInWithEmailAndPassword(

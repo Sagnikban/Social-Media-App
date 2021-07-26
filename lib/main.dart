@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'Screen0.dart';
 import 'Screen1.dart';
@@ -15,9 +17,15 @@ Future<void> main() async {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
 
-  // This widget is the root of your application.
+class _MyAppState extends State<MyApp> {
+  late String username;
+
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -33,7 +41,10 @@ class MyApp extends StatelessWidget {
           '/seven':(context)=> Screen7(),
            },
 
-       );
+
+    );
 
   }
+
+
 }

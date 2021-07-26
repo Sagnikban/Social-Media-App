@@ -11,13 +11,18 @@ class Screen2 extends StatefulWidget {
   _Screen2State createState() => _Screen2State();
 }
 class _Screen2State extends State<Screen2> {
+
+
   final _firestore = FirebaseFirestore.instance;
   var _auth=FirebaseAuth.instance;
   late var currentUser=_auth.currentUser;
   late String email;
   late String password;
   late String username;
+  late String uid;
+  late String bio="enjoy";
   bool showSpinner=false;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -84,21 +89,30 @@ class _Screen2State extends State<Screen2> {
                     showSpinner=true;
                   });
                   try {
-                  await _auth.createUserWithEmailAndPassword(
+
+                   UserCredential userCredential =await _auth.createUserWithEmailAndPassword(
                         email: email, password: password);
+
+                   _firestore.collection('users').doc(userCredential.user!.uid).set({
+                     'email':currentUser!.email!,
+                     'username':username!,
+                     'uid':userCredential.user!.uid,
+                     'bio':bio!,
+
+
+                   }   );
 
                        Navigator.pushNamed(context,'/first');
                        setState(() {
                      showSpinner=false;
                    });
+
                   }
+
                   catch(e){
                     print(e);
                   }
-                            _firestore.collection('users').add({
-                                     'email':currentUser!.email!,
-                                     'username':username!,
-                            }   );
+
                 },
                 child:Container(
 
