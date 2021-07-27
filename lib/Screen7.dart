@@ -3,7 +3,10 @@ import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 class Screen7 extends StatefulWidget {
+
   const Screen7({Key? key}) : super(key: key);
   @override
   _Screen7State createState() => _Screen7State();
@@ -14,6 +17,8 @@ class _Screen7State extends State<Screen7> {
   late var currentUser=_auth.currentUser;
   var _auth=FirebaseAuth.instance;
   late String email="banerjeesagnik29@gmail.com";
+  var collectionRef = FirebaseFirestore.instance.collection('posts');
+  var collectionRef2 = FirebaseFirestore.instance.collection('allposts');
   @override
   Widget build(BuildContext context) {
     late String username;

@@ -24,6 +24,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+  image_picker: ^0.6.0+9
+
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -39,6 +42,8 @@ dev_dependencies:
   firebase_core:
   firebase_auth:
   firebase_dynamic_links: ^0.5.1
+  firebase_storage:
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

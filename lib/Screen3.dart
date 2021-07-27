@@ -1,4 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'Screen3.dart';
 import 'Screen4.dart';
 import 'Screen5.dart';
@@ -11,8 +18,134 @@ class Screen3 extends StatefulWidget {
 }
 
 class _Screen3State extends State<Screen3> {
+  late File _image;
+  late  String username="sagnik";
+  late String bio="";
+  late String uid="";
+  var _auth = FirebaseAuth.instance;
+  getdetails () async {
+    late var currentUser = _auth.currentUser;
+
+    if (currentUser != null) {
+      var uid = await currentUser!.uid;
+      await FirebaseFirestore.instance
+          .collection('users')
+          .where('uid', isEqualTo: uid)
+          .get()
+          .then((QuerySnapshot querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          setState(() {
+            username = doc['username'];
+            bio=doc['bio'];
+            uid=doc['uid'];
+
+          });
+        });
+      });
+
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getdetails();
+  }
+
+
+  Future getImage() async
+  {
+    final image=await ImagePicker.pickImage(source:ImageSource.camera);
+    setState(() {
+      _image=image as File;
+    });
+  }
+  Future getImage1(String username, String profileURL, String name, String bio,
+      String uid, var pickedFile) async
+  {
+    final image=await ImagePicker.pickImage(source:ImageSource.gallery);
+    setState(() {
+      _image=image as File;
+    });
+
+    var collectionRef = FirebaseFirestore.instance.collection('posts');
+    var collectionRef2 = FirebaseFirestore.instance.collection('allposts');
+
+      if (pickedFile != null) {
+        var time = DateTime.now();
+        String postid = '${name}_${time}';
+        File file = File(pickedFile.path);
+        firebase_storage.Reference firebaseStorageRef = await firebase_storage
+            .FirebaseStorage.instance
+            .ref()
+            .child('posts/${uid}/${postid}');
+        var uploadTask = firebaseStorageRef.putFile(file);
+        await uploadTask.whenComplete(() async {
+          String photoURL = await firebase_storage.FirebaseStorage.instance
+              .ref('posts/${uid}/${postid}')
+              .getDownloadURL();
+          Map<String, dynamic> postdata = {
+            'who_posted': username,
+            'name': name,
+            'caption': bio,
+            'url': photoURL,
+            'time': time,
+            'who_posted_url': profileURL,
+          };
+          await collectionRef
+              .doc(uid)
+              .collection('userposts')
+              .doc(postid)
+              .set(postdata);
+          await collectionRef2.add(postdata);
+        });
+      }
+    }
+
   @override
   Widget build(BuildContext context) {
+
+    Future<dynamic> addfile() async {
+
+      return showDialog(context: context,
+
+          builder:(context){
+
+            return Dialog(
+
+              child:Padding(  padding: EdgeInsets.symmetric(
+                vertical: 10,
+              ),
+                child:Column(
+                  children: <Widget>[
+
+                    FlatButton(
+                      child:Text('Click to upload from camera'),
+                   onPressed: () {
+                        getImage();
+                   },
+                    ),
+                    FlatButton(
+                      child:Text('Click to upload from gallery'),
+                      onPressed: () {
+                        getImage1(username,username,username,bio,uid,_image);
+                        },
+
+
+
+                    ),
+
+                  ]
+                )
+                
+              )
+
+            );
+
+          }
+
+      );
+    }
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -117,7 +250,7 @@ class _Screen3State extends State<Screen3> {
                         children: <Widget>
                         [
 
-                          Column(
+                       /*   Column(
                               crossAxisAlignment: CrossAxisAlignment
                                   .start,
                               children: <Widget>[
@@ -798,7 +931,7 @@ class _Screen3State extends State<Screen3> {
                                     ]
                                 )
                               ]
-                          ),
+                          ),*/
                           Container(
                             height:40,
                           ),
@@ -860,7 +993,23 @@ class _Screen3State extends State<Screen3> {
             Container(
               width:MediaQuery.of(context).size.width/5,
 
-              child:Icon(Icons.add_box),
+                child:IconButton(
+                  onPressed: () {
+
+                    addfile();
+
+
+
+                  },
+
+
+
+
+
+
+                  icon: Icon(Icons.add_box_outlined),
+                )
+
 
             ),
 
@@ -900,6 +1049,8 @@ class _Screen3State extends State<Screen3> {
         ),
       ),
     );
+
+
 
   }
 }
