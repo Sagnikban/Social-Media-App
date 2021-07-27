@@ -23,27 +23,34 @@ class _Screen3State extends State<Screen3> {
   late String bio="";
   late String uid="";
   var _auth = FirebaseAuth.instance;
+  final picker = ImagePicker();
   getdetails () async {
     late var currentUser = _auth.currentUser;
 
     if (currentUser != null) {
-      var uid = await currentUser!.uid;
-      await FirebaseFirestore.instance
-          .collection('users')
-          .where('uid', isEqualTo: uid)
-          .get()
-          .then((QuerySnapshot querySnapshot) {
-        querySnapshot.docs.forEach((doc) {
-          setState(() {
-            username = doc['username'];
-            bio=doc['bio'];
-            uid=doc['uid'];
-
+      try {
+        var uid = await currentUser!.uid;
+        await FirebaseFirestore.instance
+            .collection('users')
+            .where('uid', isEqualTo: uid)
+            .get()
+            .then((QuerySnapshot querySnapshot) {
+          querySnapshot.docs.forEach((doc) {
+            setState(() {
+              username = doc['username'];
+              bio = doc['bio'];
+              uid = doc['uid'];
+            });
           });
         });
-      });
-
+      }
+      catch(e)
+      {
+        print('Error1');
+      }
     }
+
+
   }
 
   @override
@@ -53,53 +60,48 @@ class _Screen3State extends State<Screen3> {
   }
 
 
-  Future getImage() async
-  {
-    final image=await ImagePicker.pickImage(source:ImageSource.camera);
-    setState(() {
-      _image=image as File;
-    });
-  }
   Future getImage1(String username, String profileURL, String name, String bio,
       String uid, var pickedFile) async
   {
-    final image=await ImagePicker.pickImage(source:ImageSource.gallery);
-    setState(() {
-      _image=image as File;
-    });
+    try{
+      var collectionRef = FirebaseFirestore.instance.collection('posts');
+     var collectionRef2 = FirebaseFirestore.instance.collection('allposts');
 
-    var collectionRef = FirebaseFirestore.instance.collection('posts');
-    var collectionRef2 = FirebaseFirestore.instance.collection('allposts');
+    if (pickedFile != null) {
+      var time = DateTime.now();
+      String postid = '${name}_${time}';
+      File file = File(pickedFile.path);
+      firebase_storage.Reference firebaseStorageRef = await firebase_storage
+          .FirebaseStorage.instance
+          .ref()
+          .child('posts/${uid}/${postid}');
+      var uploadTask = firebaseStorageRef.putFile(file);
+      await uploadTask.whenComplete(() async {
+        String photoURL = await firebase_storage.FirebaseStorage.instance
+            .ref('posts/${uid}/${postid}')
+            .getDownloadURL();
 
-      if (pickedFile != null) {
-        var time = DateTime.now();
-        String postid = '${name}_${time}';
-        File file = File(pickedFile.path);
-        firebase_storage.Reference firebaseStorageRef = await firebase_storage
-            .FirebaseStorage.instance
-            .ref()
-            .child('posts/${uid}/${postid}');
-        var uploadTask = firebaseStorageRef.putFile(file);
-        await uploadTask.whenComplete(() async {
-          String photoURL = await firebase_storage.FirebaseStorage.instance
-              .ref('posts/${uid}/${postid}')
-              .getDownloadURL();
-          Map<String, dynamic> postdata = {
-            'who_posted': username,
-            'name': name,
-            'caption': bio,
-            'url': photoURL,
-            'time': time,
-            'who_posted_url': profileURL,
-          };
-          await collectionRef
-              .doc(uid)
-              .collection('userposts')
-              .doc(postid)
-              .set(postdata);
-          await collectionRef2.add(postdata);
-        });
-      }
+        Map<String, dynamic> postdata = {
+          'who_posted': username,
+          'name': name,
+          'caption': bio,
+          'url': photoURL,
+          'time': time,
+          'who_posted_url': profileURL,
+        };
+        await collectionRef
+            .doc(uid)
+            .collection('userposts')
+            .doc(postid)
+            .set(postdata);
+        await collectionRef2.add(postdata);
+      });
+    }
+  }
+  catch(e)
+    {
+      print('Error2');
+    }
     }
 
   @override
@@ -121,14 +123,20 @@ class _Screen3State extends State<Screen3> {
 
                     FlatButton(
                       child:Text('Click to upload from camera'),
-                   onPressed: () {
-                        getImage();
+                   onPressed: ()
+                   {
+
+
                    },
                     ),
                     FlatButton(
                       child:Text('Click to upload from gallery'),
-                      onPressed: () {
-                        getImage1(username,username,username,bio,uid,_image);
+                      onPressed: () async{
+
+                        var pickedFile =
+                        await ImagePicker.pickImage(source: ImageSource.gallery);
+                        getImage1(username,username,username,bio,uid,pickedFile);
+
                         },
 
 
@@ -995,17 +1003,9 @@ class _Screen3State extends State<Screen3> {
 
                 child:IconButton(
                   onPressed: () {
-
                     addfile();
 
-
-
                   },
-
-
-
-
-
 
                   icon: Icon(Icons.add_box_outlined),
                 )
