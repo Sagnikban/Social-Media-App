@@ -25,6 +25,8 @@ dependencies:
     sdk: flutter
 
   image_picker: ^0.8.2
+  image_cropper: ^1.4.1
+
 
 
 

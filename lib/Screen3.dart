@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:cloud_firestore_platform_interface/src/timestamp.dart';
 import 'Screen3.dart';
 import 'Screen4.dart';
 import 'Screen5.dart';
@@ -20,6 +21,8 @@ class _Screen3State extends State<Screen3> {
   late  String username="sagnik";
   late String bio="";
   late String uid="";
+  late String caption="";
+  late String profilepic="https://www.bing.com/images/search?view=detailV2&ccid=puMo9ITf&id=BF18939E92EDD79101588D2FB4E95945";
   var _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
   final picker = ImagePicker();
@@ -29,42 +32,40 @@ class _Screen3State extends State<Screen3> {
     //getting the data from firebase
     late var currentUser = _auth.currentUser;
     if (currentUser != null) {
-      try {
-        var uid = await currentUser!.uid;
-        await FirebaseFirestore.instance
-            .collection('users')
-            .where('uid', isEqualTo: uid)
-            .get()
-            .then((QuerySnapshot querySnapshot) {
-          querySnapshot.docs.forEach((doc) {
-            setState(() {
-              username = doc['username'];
-              bio = doc['bio'];
-              uid=doc['uid'];
-            });
+       uid = await currentUser!.uid;
+      await FirebaseFirestore.instance
+          .collection('users')
+          .where('uid', isEqualTo: uid)
+          .get()
+          .then((QuerySnapshot querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          setState(() {
+            username = doc['username'];
+            bio=doc['bio'];
+            profilepic=doc['photoURL'];
+
           });
         });
-      }
-      catch(e)
-      {
-        print(e);
-      }
+      });
     }
   }
+
   @override
   void initState() {
     super.initState();
     getdetails();
   }
   //storing the image in firestore storage
-  Future getImage1(String username, String profileURL, String name, String bio,
+  Future getImage1(String username, String profileURL, String name, String desc,String bio,
       String uid, var pickedFile) async
   {
     try{
+
       var collectionRef = FirebaseFirestore.instance.collection('posts');
      var collectionRef2 = FirebaseFirestore.instance.collection('allposts');
      if (pickedFile != null) {
       var time = DateTime.now();
+
       String postid = '${name}_${time}';
       File file = File(pickedFile.path);
       firebase_storage.Reference firebaseStorageRef = await firebase_storage
@@ -83,14 +84,16 @@ class _Screen3State extends State<Screen3> {
           'url': photoURL,
           'time': time,
           'who_posted_url': profileURL,
+          'desc':desc,
         };
         await collectionRef
-            .doc('sagnik')
+            .doc(uid)
             .collection('userposts')
-            .doc('sagnik')
+            .doc(postid)
             .set(postdata);
         await collectionRef2.add(postdata);
-        _firestore.collection('users').doc('sagnik').set({
+
+        _firestore.collection('users').doc('uid').set({
           'photoURL': photoURL!,
         });
       });
@@ -101,49 +104,91 @@ class _Screen3State extends State<Screen3> {
                 print(e);
              }
   }
+  String formatTimestamp(Timestamp t) {
+    DateTime d = t.toDate();
+    return (d.toString());
+  }
+  createAlertDailog(BuildContext context)
+  {
+    return showDialog(context: context, builder:(context)
+        {
+          return SingleChildScrollView(
+              child:AlertDialog(
+                  title :Text("Enter caption "),
+                  content:  TextField(
+                    onChanged: (value){
+                      caption=value;
+                    },
+                    maxLines: 3,
+                    maxLength: 75,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Enter caption',
+                    ),
+                  ),
+                  actions:<Widget>[
+                    MaterialButton(
+                      elevation: 5.0,
+                      child:Text('Submit'),
+                      onPressed: (){
+                        _firestore.collection('users').doc(_auth.currentUser!.uid).update({
+                          'caption':caption!,
+
+                        }   );
+
+                        Navigator.pop(context);
+                      },
+                    )
+                  ]
+              ),
+          );
+
+        });
+  }
+
 
   @override
   Widget build(BuildContext context) {
    //Capturing image from gallery or camera
-    Future<dynamic> addfile() async {
+    Future<dynamic>
+    addfile() async {
       return showDialog(context: context,
           builder:(context){
-           return Dialog(
-                child:Padding(  padding: EdgeInsets.symmetric(
-                vertical: 10,),
-                child:Column(
-                  children: <Widget>[
-                    FlatButton(
-                      child:Text('Click to upload from camera'),
-                   onPressed: () async
-                    {
-                     var pickedFile1 =
-                         await picker.getImage(source: ImageSource.camera);
-                     print("The path is");
-                     print(pickedFile1!.path);
-                     getImage1(username,username,username,bio,uid,pickedFile1);
-                     Navigator.pushNamed(context,'/three');
-                     },
-                    ),
-                    FlatButton
-                      (
-                      child:Text('Click to upload from gallery'),
-                      onPressed: () async{
-                        var pickedFile =
-                        await picker.getImage(source: ImageSource.gallery);
-                        print("The path is");
-                        print(pickedFile!.path);
-                        print(username);
-                        print(bio);
-                        print(uid);
-                        getImage1(username,username,username,bio,uid,pickedFile);
-                        Navigator.pushNamed(context,'/three');
-                        },
-                       ),
-                  ]
+           return SingleChildScrollView(
+             child: Dialog(
+                  child:Padding(  padding: EdgeInsets.symmetric(
+                  vertical: 10,),
+                  child:Column(
+                    children: <Widget>[
+                      FlatButton(
+                        child:Text('Click to upload from camera'),
+                     onPressed: () async
+                      {
+                       var pickedFile1 =
+                           await picker.getImage(source: ImageSource.camera);
+                       await createAlertDailog(context);
+                       getImage1(username,profilepic,username,caption,bio,_auth.currentUser!.uid,pickedFile1);
+
+                       Navigator.pop(context);
+                       },
+                      ),
+                      FlatButton
+                        (
+                         child:Text('Click to upload from gallery'),
+                         onPressed: () async{
+                          var pickedFile = await picker.getImage(source: ImageSource.gallery);
+                          await createAlertDailog(context);
+                          getImage1(username,profilepic,username,caption,bio,_auth.currentUser!.uid,pickedFile);
+                          Navigator.pop(context);
+
+                          },
+                         ),
+                    ]
+                  )
                 )
-              )
-            );
+              ),
+           );
+
           }
       );
     }
@@ -166,45 +211,18 @@ class _Screen3State extends State<Screen3> {
                },
                icon:Icon(Icons.send,color:Colors.black87),
             )
+
           ],
 
         ),
 
 
-        body:StreamBuilder<QuerySnapshot>(
-              stream: _usersStream,
-              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.hasError) {
-                return Text('Something went wrong');
-                }
 
-               if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Text("Loading");
-                 }
-
-    return new ListView(
-    children: snapshot.data!.docs.map((DocumentSnapshot document) {
-    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-
-    return Container(
-
-
-       height:500,width:500,
-       child:Image(
-         image:NetworkImage(data['url']),
-       )
-
-    );
-    }).toList(),
-    );},
-
-
-    /*      initialData: Column(
-            children: <Widget>
-            [
-
+        body:
+        SingleChildScrollView(
+          child: Column(
+            children:<Widget>[
               SingleChildScrollView(
-
                   scrollDirection: Axis.horizontal,
                   child: Row(
                       children: <Widget>[
@@ -217,6 +235,7 @@ class _Screen3State extends State<Screen3> {
                           radius:48,
 
                           backgroundImage:AssetImage('assets/OIP.jfif'),
+
 
                         ),
 
@@ -244,6 +263,8 @@ class _Screen3State extends State<Screen3> {
                           radius:48,
 
                           backgroundImage:AssetImage('assets/cute-tiger-cub-enrique-mendez.jpg'),
+
+
                         ),
 
 
@@ -252,20 +273,116 @@ class _Screen3State extends State<Screen3> {
                       ]
                   )
               ),
-              Divider(
-                height:2,
-                thickness:3,
-              ),
               Container(
-                height:6,
+                height:600,
+                child:StreamBuilder<QuerySnapshot>(
+
+                  stream: _usersStream,
+                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Something went wrong');
+                    }
+
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Text("Loading");
+                    }
+
+                    return new ListView(
+
+                      children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                        Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                        return Container(
+                          child:SingleChildScrollView(
+                            child:Column(
+                              children:<Widget> [
+                                Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  height: 300,
+
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      fit: BoxFit.fill,
+                                      image: NetworkImage(data['url']),
+                                    ),
+                                  ),
+
+                                ),
+
+
+                                SizedBox(height:25),
+
+                                Column(
+                                    crossAxisAlignment:CrossAxisAlignment.start,
+                                    children:<Widget>[
+
+                                      Text(" ${data['desc']} "),
+                                      SizedBox(height:14),
+                                      Container(
+                                        padding:EdgeInsets.only(left:10),
+                                        child:CircleAvatar(
+
+                                          radius:30,
+                                          backgroundImage:NetworkImage(data['who_posted_url']),
+                                        ),
+                                      ),
+                                      SizedBox(height:8),
+
+                                      Row(
+                                          children:<Widget>[
+                                            Text(" ${data['who_posted']} ",textAlign: TextAlign.left,),
+                                            Text("   ${formatTimestamp(data['time'])} " ,textAlign: TextAlign.left,)
+
+                                          ]
+
+                                      ),
+
+
+                                    ]
+                                ),
+                                Row(
+                                    children:<Widget>[
+                                      IconButton(
+                                        onPressed:()
+                                        {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(content: Text('You liked this post')));
+                                        },
+                                        icon:Icon(Icons.favorite_border,color: Colors.pink,),
+
+
+                                      ),
+                                      Container(width:10),
+                                      Icon(Icons.chat_bubble_outline),
+                                      Container(width:10),
+                                      Icon(Icons.share),
+
+                                    ]
+                                ),
+
+
+                              ],
+                            ),
+                          ),
+
+
+
+                        );
+
+
+                      }).toList(),
+
+
+                    );
+                  },
+
+                ),
+
+
               ),
 
-
-
-            ],
+            ]
           ),
-*/
-
         ),
 
 

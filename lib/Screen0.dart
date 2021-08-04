@@ -7,62 +7,66 @@ class Screen0 extends StatelessWidget {
       home: Scaffold(
 
         body: Center(
+          child:SingleChildScrollView(
 
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>
-            [
-              SizedBox(height :200),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>
+              [
+                SizedBox(height :200),
 
 
-              Image(
-                image:AssetImage('assets/instagram_logo.png'),
-                width: 340,
-                height:100,
-
-              ),
-              SizedBox(height:20),
-
-              FlatButton(
-                onPressed:() {
-                  Navigator.pushNamed(context, '/first');
-
-                },
-                 child: Container(
-                  padding: EdgeInsets.fromLTRB(110,25,50,30),
-
-                  color: Colors.teal,
+                Image(
+                  image:AssetImage('assets/instagram_logo.png'),
                   width: 340,
-                  height:90,
-                  child:Text('Log in',
-                    style:TextStyle(fontSize: 25,color:Colors.white ),
-                  ),
+                  height:100,
 
                 ),
-              ),
+                SizedBox(height:20),
 
-              SizedBox(height:30),
+                FlatButton(
+                  onPressed:() {
+                    Navigator.pushNamed(context, '/first');
 
-              FlatButton(
-                onPressed:()
-                  {
-                     Navigator.pushNamed(context,'/second');
                   },
-               child: Container (
-                padding: EdgeInsets.fromLTRB(110,25,50,30),
+                  child: Container(
+                    padding: EdgeInsets.fromLTRB(110,25,50,30),
 
-                color: Colors.teal,
-                width: 340,
-                height:90,
-                child:Text('Sign Up',
-                  style:TextStyle(fontSize: 25,color:Colors.white ),
+                    color: Colors.teal,
+                    width: 340,
+                    height:90,
+                    child:Text('Log in',
+                      style:TextStyle(fontSize: 25,color:Colors.white ),
+                    ),
+
+                  ),
                 ),
 
+                SizedBox(height:30),
 
-              ),
-              ),
-            ],
+                FlatButton(
+                  onPressed:()
+                  {
+                    Navigator.pushNamed(context,'/second');
+                  },
+                  child: Container (
+                    padding: EdgeInsets.fromLTRB(110,25,50,30),
+
+                    color: Colors.teal,
+                    width: 340,
+                    height:90,
+                    child:Text('Sign Up',
+                      style:TextStyle(fontSize: 25,color:Colors.white ),
+                    ),
+
+
+                  ),
+                ),
+              ],
+            ),
+
           ),
+
 
         ),
 

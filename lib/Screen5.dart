@@ -1,8 +1,13 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import  'dart:io';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'Screen3.dart';
 import 'Screen4.dart';
 import 'Screen5.dart';
@@ -18,11 +23,20 @@ class _Screen5State extends State<Screen5> {
   var _auth = FirebaseAuth.instance;
   late  String username="sagnik";
   late String bio="";
+  final _firestore = FirebaseFirestore.instance;
+  final picker = ImagePicker();
+  late String uid="";
+  final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance.collection('users').snapshots();
+
+
+
+
    getdetails () async {
     late var currentUser = _auth.currentUser;
 
+
     if (currentUser != null) {
-      var uid = await currentUser!.uid;
+       uid = await currentUser!.uid;
       await FirebaseFirestore.instance
           .collection('users')
           .where('uid', isEqualTo: uid)
@@ -40,139 +54,354 @@ class _Screen5State extends State<Screen5> {
     }
   }
 
+  Future getImage1(var pickedFile) async
+  {
+    try{
+      if (pickedFile != null) {
+        File file = File(pickedFile.path);
+       firebase_storage.Reference firebaseStorageRef = await firebase_storage
+            .FirebaseStorage.instance
+            .ref()
+            .child('users/${uid}');
+         var uploadTask = firebaseStorageRef.putFile(file);
+        await uploadTask.whenComplete(() async {
+          String photoURL = await firebase_storage.FirebaseStorage.instance
+              .ref('users/${uid}')
+              .getDownloadURL();
+          _firestore.collection('users').doc(_auth.currentUser!.uid).update({
+            'photoURL': photoURL!,
+          });
+        });
+      }
+    }
+    catch(e)
+    {
+      print(e);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     getdetails();
   }
+  /*
+  Widget bottomSheet(){
+     return Container(
+       height:100,
+       width: MediaQuery.of(context).size.width,
+       margin:EdgeInsets.symmetric(
+         horizontal:20,
+         vertical:20,
+       ),
+       child:Column(
+         children:<Widget>[
+           Text('Choose profile photo',style:TextStyle(fontSize:20),),
+           SizedBox(height:20),
+           Row(
+             mainAxisAlignment:MainAxisAlignment.center ,
+             children:<Widget>
+               [
+                 FlatButton.icon(
+                     onPressed:()async
+                     {
+                       print('Gadha');
+                       var pickedFile1 =
+                       await picker.getImage(source: ImageSource.camera);
+                       print('Goru');
+                      print(pickedFile1!.path);
+                      print('Gadha');
+                       getImage1(pickedFile1);
+                       Navigator.pushNamed(context,'/five');
+                       },
+
+                     icon:Icon(Icons.camera),
+                     label: Text("Camera")
+                 ),
+                FlatButton.icon(
+                   onPressed:() async
+                 {
+                   var pickedFile =
+                   await picker.getImage(source: ImageSource.gallery);
+                   getImage1(pickedFile);
+                   Navigator.pushNamed(context,'/five');
+                 },
+                   icon:Icon(Icons.image_rounded),
+                   label: Text("Gallery"),
+               )
+             ]
+           )
+         ]
+       )
+     );
+  }
+
+   */
 
   @override
   Widget build(BuildContext context) {
+
+
+    Future<dynamic> addfile() async {
+      return showDialog(context: context,
+          builder:(context){
+            return Dialog(
+                child:Padding(  padding: EdgeInsets.symmetric(
+                  vertical: 10,),
+                    child:Column(
+                        children: <Widget>[
+                          FlatButton(
+                            child:Text('Click to upload from camera'),
+                            onPressed: () async
+                            {
+                              var pickedFile1 =
+                              await picker.getImage(source: ImageSource.camera);
+                              print("The path is");
+                              print(pickedFile1!.path);
+                              getImage1(pickedFile1);
+                              Navigator.popAndPushNamed(context,'/five');
+
+                            },
+                          ),
+                          FlatButton
+                            (
+                            child:Text('Click to upload from gallery'),
+                            onPressed: () async{
+                              var pickedFile =
+                              await picker.getImage(source: ImageSource.gallery);
+                              print("The path is");
+                              print(pickedFile!.path);
+                              print(username);
+                              print(bio);
+                              print(uid);
+                              getImage1(pickedFile);
+                              Navigator.pushNamed(context,'/five');
+                            },
+                          ),
+                        ]
+                    )
+                )
+            );
+          }
+      );
+    }
     return MaterialApp(
     home:Scaffold(
-    body:SafeArea(
+    body: SingleChildScrollView(
+      child: Column(
+        children:<Widget>[
+          StreamBuilder<QuerySnapshot>(
+            stream: _usersStream,
+            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot)  {
+              if (snapshot.hasError) {
+                return Text('Something went wrong');
+              }
+              else if (snapshot.connectionState == ConnectionState.waiting) {
+                return Text("Loading");
+              }
+              else {
+                  return new Container(
+                      child: Column(
+                          children: <Widget>[
+                            Container(
 
-       child:Column(
-       children:<Widget>[
+                                child: Column(
+                                  crossAxisAlignment:CrossAxisAlignment.start,
 
-         SizedBox(height:40),
-         Container(
-           padding:EdgeInsets.only(left:50),
-            child:Text("      ${username}" ),
-         ),
-         SizedBox(height:40)  ,
-         Row(
-             children:<Widget>
-             [
-               Container(width:20),
-               CircleAvatar(
-                   radius:50,
+                                    children: <Widget>[
 
-                   backgroundImage:AssetImage('assets/OIP.jfif'),
+                                         Column(
+                                             crossAxisAlignment:CrossAxisAlignment.start,
+                                            children: <Widget>
+                                            [
+                                              Container(height:40),
+                                              Text("                                                ${   username}"),
+                                              Container(height:40),
+                                              Row(
+                                                children:<Widget>[
+                                                  Stack(
+                                                    children:<Widget>[
 
-               ),
-               Container(width:45),
-               Container(
-                 width:40,
-                 child:Text('   54 posts'),
-               ),
-               Container(width:20),
-               Container(
-                 width:68,
-                 child:Text('    834  followers'),
-               ),
-               Container(width:10),
-               Container(
-                 width:68,
-                 child:Text('    162  following'),
-               )
+                                                      Container(
+                                                        padding:EdgeInsets.only(left:20),
 
-             ]
+                                                        child: CircleAvatar(
+
+                                                          radius: 30,
+                                                          child: Positioned(
+
+                                                              child: InkWell(
+                                                                  onTap: () {
+                                                                    addfile();
+                                                                  },
+                                                                  child: Icon(
+                                                                    Icons.camera_alt,
+                                                                    color: Colors.teal,
+                                                                    size: 20,
+
+                                                                  )
+                                                              )
+                                                          ),
+                                                          backgroundImage: NetworkImage(snapshot.data!.docs[0]['photoURL']),
+
+                                                        ),),
+
+                                                    ]
+                                                  ),
 
 
-         ),
-              Container(height:20),
+                                                     Container(
+                                                       width:28,
+                                                     ),
+                                                   Container(
+                                                width: 50,
+                                                child: Text('54 posts'),
+                                              ),
+                                              Container(width: 20),
+                                              Container(
+                                                width: 80,
+                                                child: Text('834  followers'),
+                                              ),
+                                              Container(width: 10),
+                                              Container(
+                                                width: 80,
+                                                child: Text('162  following'),
+                                              ),
 
-          Row(
 
-            children:<Widget>
-            [
-               Text("      ${username}"),
-           ]
+                                                ]
+                                              ),
+
+                                             SizedBox(height:20),
+                                              Row(
+                                                  children: <Widget>
+                                                  [
+                                                    Text("      ${username}"),
+                                                  ]
+                                              ),
+                                              SizedBox(height:10),
+                                              Row(
+                                                  children: <Widget>
+                                                  [
+                                                    Text('       ${bio}'),
+                                                  ]
+                                              ),
+                                            ]
+
+                                        ),
+
+                                    ]
+                                )
+                            )
+
+
+                          ]
+                      )
+
+                  );
+             //   });
+              }
+
+              },
           ),
 
-         Row(
-
-             children:<Widget>
-             [
-               Text('       ${bio}'),
-             ]
-         ),
-
-
-         SizedBox(height:50),
-         FlatButton
-           (
-
-           onPressed:()
-           {
-             Navigator.pushNamed(context,'/seven');
-           },
-
-           child:  Container(
-
-
-             padding: EdgeInsets.fromLTRB(100,17,50,10),
-
-
-             child:Text('Edit profile',style:TextStyle(fontSize:25,color:Colors.black26)),
-             width:350,
-             height:70,
-             decoration: BoxDecoration(
-               border: Border.all(
-                   color: Colors.grey,
-                   style: BorderStyle.solid
-               ),
-             ),
-
-           ),
-
-         ),
-         SizedBox(height:10),
-         SizedBox(
-           height:287,
-           child:StaggeredGridView.countBuilder(
-             crossAxisCount: 4,
-             itemCount: 15,
-             itemBuilder: (BuildContext context, int index) => new Container(
-               height: 120.0,
-               width: 120.0,
-               decoration: BoxDecoration(
-                 image: DecorationImage(
-                   image: NetworkImage('https://picsum.photos/500/500?random=$index'),
-                   fit: BoxFit.fill,
-                 ),
-                 shape: BoxShape.rectangle,
-               ),
-             ),
-             staggeredTileBuilder: (int index) =>
-             new StaggeredTile.count(2, index.isEven ? 3 : 2),
-             mainAxisSpacing: 4.0,
-             crossAxisSpacing: 4.0,
-           ),
-
-
-         ),
-
-
-       ]
 
 
 
-       )
+          Column(
+              children:<Widget>[
+                SizedBox(height:60),
+
+                FlatButton
+                  (
+
+                  onPressed:()
+                  {
+                    Navigator.pushNamed(context,'/seven');
+                  },
+
+                  child:  Container(
 
 
+                    padding: EdgeInsets.fromLTRB(100,17,50,10),
+
+
+                    child:Text('Edit profile',style:TextStyle(fontSize:25,color:Colors.black26)),
+                    width:350,
+                    height:70,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.grey,
+                          style: BorderStyle.solid
+                      ),
+                    ),
+
+                  ),
+
+                ),
+                SizedBox(height:10),
+
+
+               Container(
+                 height:300,
+
+
+                 child:StreamBuilder<QuerySnapshot>(
+                // final Stream<QuerySnapshot> _usersStream1 = FirebaseFirestore.instance.collection('posts').
+                // doc(_auth.currentUser!.uid).collection('userposts').snapshots();
+                  // stream: _usersStream1,
+                     stream:FirebaseFirestore.instance.collection('posts').
+                      doc(_auth.currentUser!.uid).collection('userposts').snapshots(),
+                     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot)  {
+                     if(FirebaseFirestore.instance.collection('posts').
+                     doc(_auth.currentUser!.uid).collection('userposts').snapshots()!=null)
+                       {
+                         if (snapshot.hasError) {
+                           return Text('Something went wrong');
+                         }
+                         if (snapshot.connectionState == ConnectionState.waiting) {
+                           return Text("Loading");
+                         }
+                         return new GridView.builder(
+                           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                             crossAxisCount: 3,
+                             crossAxisSpacing: 5.0,
+                             mainAxisSpacing: 5.0,
+                           ),
+                           itemCount:snapshot.data!.docs.length,
+                           itemBuilder: (BuildContext context, int index) {
+                             return Container
+                               (
+                               child: Container(
+                                 width: MediaQuery
+                                     .of(context)
+                                     .size
+                                     .width / 3,
+                                 height: 300,
+                                 decoration: BoxDecoration(
+                                   image: DecorationImage(
+                                     fit: BoxFit.fill,
+                                     image: NetworkImage(
+                                         snapshot.data!.docs[index]['url']),
+                                   ),
+                                 ),
+                               ),
+                             );
+                           },
+                         );
+                       }
+                     else
+                       return Text('No posts yet');
+
+                   } ,
+                 )
+               )
+
+              ]
+          ),
+        ]
       ),
+    ),
 
       bottomNavigationBar: Row(
         children:<Widget>[

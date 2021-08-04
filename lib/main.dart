@@ -37,6 +37,7 @@ class _MyAppState extends State<MyApp> {
           '/second':(context) => Screen2(),
           '/three':(context)=> Screen3(),
           '/four':(context)=> Screen4(),
+
           '/five':(context)=> Screen5(),
           '/six':(context)=> Screen6(),
           '/seven':(context)=> Screen7(),

@@ -20,7 +20,9 @@ class _Screen2State extends State<Screen2> {
   late String password;
   late String username;
   late String uid;
+  late String caption="enjoy";
   late String bio="enjoy";
+  late String photoURL="https://www.seekpng.com/png/detail/966-9665493_my-profile-icon-blank-profile-image-circle.png";
   bool showSpinner=false;
 
   @override
@@ -98,6 +100,8 @@ class _Screen2State extends State<Screen2> {
                      'username':username!,
                      'uid':userCredential.user!.uid,
                      'bio':bio!,
+                     'photoURL':photoURL!,
+                      'caption':caption!,
 
 
                    }   );
