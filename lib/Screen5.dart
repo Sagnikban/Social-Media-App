@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'Screen2.dart';
 import 'Screen3.dart';
 import 'Screen4.dart';
 import 'Screen5.dart';
@@ -26,13 +27,10 @@ class _Screen5State extends State<Screen5> {
   final _firestore = FirebaseFirestore.instance;
   final picker = ImagePicker();
   late String uid="";
-  final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance.collection('users').snapshots();
-
-
+  late var currentUser = _auth.currentUser;
 
 
    getdetails () async {
-    late var currentUser = _auth.currentUser;
 
 
     if (currentUser != null) {
@@ -85,63 +83,9 @@ class _Screen5State extends State<Screen5> {
     super.initState();
     getdetails();
   }
-  /*
-  Widget bottomSheet(){
-     return Container(
-       height:100,
-       width: MediaQuery.of(context).size.width,
-       margin:EdgeInsets.symmetric(
-         horizontal:20,
-         vertical:20,
-       ),
-       child:Column(
-         children:<Widget>[
-           Text('Choose profile photo',style:TextStyle(fontSize:20),),
-           SizedBox(height:20),
-           Row(
-             mainAxisAlignment:MainAxisAlignment.center ,
-             children:<Widget>
-               [
-                 FlatButton.icon(
-                     onPressed:()async
-                     {
-                       print('Gadha');
-                       var pickedFile1 =
-                       await picker.getImage(source: ImageSource.camera);
-                       print('Goru');
-                      print(pickedFile1!.path);
-                      print('Gadha');
-                       getImage1(pickedFile1);
-                       Navigator.pushNamed(context,'/five');
-                       },
-
-                     icon:Icon(Icons.camera),
-                     label: Text("Camera")
-                 ),
-                FlatButton.icon(
-                   onPressed:() async
-                 {
-                   var pickedFile =
-                   await picker.getImage(source: ImageSource.gallery);
-                   getImage1(pickedFile);
-                   Navigator.pushNamed(context,'/five');
-                 },
-                   icon:Icon(Icons.image_rounded),
-                   label: Text("Gallery"),
-               )
-             ]
-           )
-         ]
-       )
-     );
-  }
-
-   */
 
   @override
   Widget build(BuildContext context) {
-
-
     Future<dynamic> addfile() async {
       return showDialog(context: context,
           builder:(context){
@@ -159,8 +103,7 @@ class _Screen5State extends State<Screen5> {
                               print("The path is");
                               print(pickedFile1!.path);
                               getImage1(pickedFile1);
-                              Navigator.popAndPushNamed(context,'/five');
-
+                             // Navigator.pushNamed(context,'/second');
                             },
                           ),
                           FlatButton
@@ -175,7 +118,7 @@ class _Screen5State extends State<Screen5> {
                               print(bio);
                               print(uid);
                               getImage1(pickedFile);
-                              Navigator.pushNamed(context,'/five');
+                             // Navigator.pushNamed(context,'/second');
                             },
                           ),
                         ]
@@ -190,8 +133,34 @@ class _Screen5State extends State<Screen5> {
     body: SingleChildScrollView(
       child: Column(
         children:<Widget>[
+          SizedBox(height:30),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children:<Widget>[
+              FlatButton(
+                  onPressed:()
+                  {
+                    Navigator.pushNamed(context,'/second');
+                  },
+                  child:Container(
+                    height:25,width:70,
+
+                    color:Colors.blueAccent,
+                    child:Text('Log Out',style:TextStyle(fontSize:16,color:Colors.white)),
+                  )
+
+              ),
+
+
+            ]
+          ),
+
+
+          SizedBox(height:10),
           StreamBuilder<QuerySnapshot>(
-            stream: _usersStream,
+
+
+            stream:  FirebaseFirestore.instance.collection('users').where('uid',isEqualTo:currentUser!.uid ).snapshots(),
             builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot)  {
               if (snapshot.hasError) {
                 return Text('Something went wrong');
@@ -204,18 +173,21 @@ class _Screen5State extends State<Screen5> {
                       child: Column(
                           children: <Widget>[
                             Container(
-
                                 child: Column(
                                   crossAxisAlignment:CrossAxisAlignment.start,
-
                                     children: <Widget>[
-
-                                         Column(
+                                      Column(
                                              crossAxisAlignment:CrossAxisAlignment.start,
-                                            children: <Widget>
+                                             children: <Widget>
                                             [
-                                              Container(height:40),
-                                              Text("                                                ${   username}"),
+                                              Container(height:10),
+                                              Row(
+                                                children:<Widget>[
+                                                  Container(width:10),
+                                                  Text("                                       ${   username}"),
+                                                  Container(width:10),
+                                                ]
+                                              ),
                                               Container(height:40),
                                               Row(
                                                 children:<Widget>[
@@ -229,7 +201,6 @@ class _Screen5State extends State<Screen5> {
 
                                                           radius: 30,
                                                           child: Positioned(
-
                                                               child: InkWell(
                                                                   onTap: () {
                                                                     addfile();
@@ -242,6 +213,7 @@ class _Screen5State extends State<Screen5> {
                                                                   )
                                                               )
                                                           ),
+
                                                           backgroundImage: NetworkImage(snapshot.data!.docs[0]['photoURL']),
 
                                                         ),),
@@ -276,14 +248,14 @@ class _Screen5State extends State<Screen5> {
                                               Row(
                                                   children: <Widget>
                                                   [
-                                                    Text("      ${username}"),
+                                                    Text("   ${username}"),
                                                   ]
                                               ),
                                               SizedBox(height:10),
                                               Row(
                                                   children: <Widget>
                                                   [
-                                                    Text('       ${bio}'),
+                                                    Text('   ${bio}'),
                                                   ]
                                               ),
                                             ]
@@ -343,13 +315,11 @@ class _Screen5State extends State<Screen5> {
 
 
                Container(
-                 height:300,
+                 height:400,
 
 
                  child:StreamBuilder<QuerySnapshot>(
-                // final Stream<QuerySnapshot> _usersStream1 = FirebaseFirestore.instance.collection('posts').
-                // doc(_auth.currentUser!.uid).collection('userposts').snapshots();
-                  // stream: _usersStream1,
+
                      stream:FirebaseFirestore.instance.collection('posts').
                       doc(_auth.currentUser!.uid).collection('userposts').snapshots(),
                      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot)  {
@@ -457,12 +427,28 @@ class _Screen5State extends State<Screen5> {
                 Navigator.pushNamed(context,'/five');
               },
 
-              child :CircleAvatar(
-                radius:15,
 
-                backgroundImage:AssetImage('assets/OIP.jfif'),
+              child:StreamBuilder<QuerySnapshot>(
 
+                stream:  FirebaseFirestore.instance.collection('users').where('uid',isEqualTo:currentUser!.uid ).snapshots(),
+                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('Something went wrong');
+                  }
 
+                  else if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Text("Loading");
+                  }
+
+                  else return new Container(
+                      child:CircleAvatar
+                        (
+                        radius:20,
+                        backgroundImage:NetworkImage(snapshot.data!.docs[0]['photoURL']),
+                      ),
+
+                    );
+                },
               ),
             ),
 

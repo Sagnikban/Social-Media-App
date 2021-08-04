@@ -26,11 +26,12 @@ class _Screen3State extends State<Screen3> {
   var _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
   final picker = ImagePicker();
+  late var currentUser = _auth.currentUser;
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance.collection('allposts').snapshots();
+
 
   getdetails () async {
     //getting the data from firebase
-    late var currentUser = _auth.currentUser;
     if (currentUser != null) {
        uid = await currentUser!.uid;
       await FirebaseFirestore.instance
@@ -440,25 +441,38 @@ class _Screen3State extends State<Screen3> {
                 )
             ),
 
-
             Container(
               width:MediaQuery.of(context).size.width/5,
+
               child:FlatButton(
                 onPressed:()
                 {
                   Navigator.pushNamed(context,'/five');
                 },
 
-                child :CircleAvatar(
-                  radius:15,
+                child:StreamBuilder<QuerySnapshot>(
 
-                  backgroundImage:AssetImage('assets/OIP.jfif'),
+                  stream:  FirebaseFirestore.instance.collection('users').where('uid',isEqualTo:currentUser!.uid ).snapshots(),
+                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Something went wrong');
+                    }
 
+                    else if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Text("Loading");
+                    }
 
+                    else return new Container(
+                        child:CircleAvatar
+                          (
+                          radius:20,
+                          backgroundImage:NetworkImage(snapshot.data!.docs[0]['photoURL']),
+                        ),
+
+                    );
+                  },
                 ),
-              ),
-
-
+            )
             )
 
           ],

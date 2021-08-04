@@ -1,10 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'Screen3.dart';
 import 'Screen4.dart';
 import 'Screen5.dart';
 
-class  Screen4 extends StatelessWidget {
+class  Screen4 extends StatefulWidget {
+
+  @override
+  _Screen4State createState() => _Screen4State();
+}
+
+class _Screen4State extends State<Screen4> {
+  var _auth = FirebaseAuth.instance;
+  late var currentUser = _auth.currentUser;
   @override
   Widget build(BuildContext context) {
     var size=MediaQuery.of(context).size;
@@ -115,30 +125,56 @@ class  Screen4 extends StatelessWidget {
                    ],
                  ),
                     SizedBox(height:10),
-               SizedBox(
-                   height:485,
-                   child:StaggeredGridView.countBuilder(
-                     crossAxisCount: 4,
-                     itemCount: 15,
-                     itemBuilder: (BuildContext context, int index) => new Container(
-                       height: 120.0,
-                       width: 120.0,
-                       decoration: BoxDecoration(
-                         image: DecorationImage(
-                           image: NetworkImage('https://picsum.photos/500/500?random=$index'),
-                           fit: BoxFit.fill,
-                         ),
-                         shape: BoxShape.rectangle,
-                       ),
-                     ),
-                     staggeredTileBuilder: (int index) =>
-                     new StaggeredTile.count(2, index.isEven ? 3 : 2),
-                     mainAxisSpacing: 4.0,
-                     crossAxisSpacing: 4.0,
-                   ),
+
+                Container(
+                    height:400,
 
 
-               ),
+                    child:StreamBuilder<QuerySnapshot>(
+                      stream:FirebaseFirestore.instance.collection('allposts').snapshots(),
+                       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot)  {
+                        if(FirebaseFirestore.instance.collection('allposts').snapshots()!=null)
+                        {
+                          if (snapshot.hasError) {
+                            return Text('Something went wrong');
+                          }
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Text("Loading");
+                          }
+                          return new GridView.builder(
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 5.0,
+                              mainAxisSpacing: 5.0,
+                            ),
+                            itemCount:snapshot.data!.docs.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return Container
+                                (
+                                child: Container(
+                                  width: MediaQuery
+                                      .of(context)
+                                      .size
+                                      .width / 3,
+                                  height: 300,
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      fit: BoxFit.fill,
+                                      image: NetworkImage(
+                                          snapshot.data!.docs[index]['url']),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        }
+                        else
+                          return Text('No posts yet');
+
+                      } ,
+                    )
+                )
                    ]
                )
 
@@ -201,12 +237,28 @@ class  Screen4 extends StatelessWidget {
                  Navigator.pushNamed(context,'/five');
                },
 
-               child :CircleAvatar(
-                 radius:15,
 
-                 backgroundImage:AssetImage('assets/OIP.jfif'),
+               child:StreamBuilder<QuerySnapshot>(
 
+                 stream: FirebaseFirestore.instance.collection('users').where('uid',isEqualTo:currentUser!.uid ).snapshots(),
+                 builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                   if (snapshot.hasError) {
+                     return Text('Something went wrong');
+                   }
 
+                   else if (snapshot.connectionState == ConnectionState.waiting) {
+                     return Text("Loading");
+                   }
+
+                   else return new Container(
+                       child:CircleAvatar
+                         (
+                         radius:20,
+                         backgroundImage:NetworkImage(snapshot.data!.docs[0]['photoURL']),
+                       ),
+
+                     );
+                 },
                ),
              ),
 
