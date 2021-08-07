@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:cloud_firestore_platform_interface/src/timestamp.dart';
+import 'package:uuid/uuid.dart';
 import 'Screen3.dart';
 import 'Screen4.dart';
 import 'Screen5.dart';
@@ -27,7 +28,11 @@ class _Screen3State extends State<Screen3> {
   final _firestore = FirebaseFirestore.instance;
   final picker = ImagePicker();
   late var currentUser = _auth.currentUser;
+  bool isPressed = false;
   final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance.collection('allposts').snapshots();
+  var collectionRef = FirebaseFirestore.instance.collection('posts');
+  var collectionRef2 = FirebaseFirestore.instance.collection('allposts');
+  int c=0;
 
 
   getdetails () async {
@@ -50,24 +55,41 @@ class _Screen3State extends State<Screen3> {
       });
     }
   }
-
   @override
   void initState() {
-    super.initState();
+   super.initState();
+
     getdetails();
+  }
+ updatelike(String id, List who_liked) {
+    if (!who_liked.contains(_auth.currentUser!.uid)) {
+      who_liked.add(_auth.currentUser!.uid);
+      collectionRef2.doc(id).update({'who_liked': who_liked});
+    }
+
+
+
+  }
+unupdatelike(String id, List who_liked) {
+    who_liked.remove(_auth.currentUser!.uid);
+    collectionRef2.doc(id).update({'who_liked': who_liked});
+
+
+
   }
   //storing the image in firestore storage
   Future getImage1(String username, String profileURL, String name, String desc,String bio,
       String uid, var pickedFile) async
   {
-    try{
 
-      var collectionRef = FirebaseFirestore.instance.collection('posts');
-     var collectionRef2 = FirebaseFirestore.instance.collection('allposts');
+    try{
+      var uuid = Uuid();
+      String postid =uuid.v1();
+
      if (pickedFile != null) {
       var time = DateTime.now();
 
-      String postid = '${name}_${time}';
+
       File file = File(pickedFile.path);
       firebase_storage.Reference firebaseStorageRef = await firebase_storage
           .FirebaseStorage.instance
@@ -86,13 +108,15 @@ class _Screen3State extends State<Screen3> {
           'time': time,
           'who_posted_url': profileURL,
           'desc':desc,
+          'who_liked':[],
+          'post_id':postid,
         };
         await collectionRef
             .doc(uid)
             .collection('userposts')
             .doc(postid)
             .set(postdata);
-        await collectionRef2.add(postdata);
+        await collectionRef2.doc(postid).set(postdata);
 
         _firestore.collection('users').doc('uid').set({
           'photoURL': photoURL!,
@@ -233,7 +257,7 @@ class _Screen3State extends State<Screen3> {
                         ),
                         SizedBox(height:5),
                         CircleAvatar(
-                          radius:48,
+                          radius:35,
 
                           backgroundImage:AssetImage('assets/OIP.jfif'),
 
@@ -242,18 +266,18 @@ class _Screen3State extends State<Screen3> {
 
                         SizedBox(width:10),
                         CircleAvatar(
-                          radius:48,
+                          radius:35,
                           backgroundImage:AssetImage('assets/R (3).jfif'),
                         ),
                         SizedBox(width:10),
                         CircleAvatar(
-                          radius:48,
+                          radius:35,
                           backgroundImage:AssetImage('assets/R (2).jfif'),
                         ) ,
                         SizedBox(width:10),
 
                         CircleAvatar(
-                          radius:48,
+                          radius:35,
                           backgroundImage:AssetImage('assets/R (1).jfif'),
 
                         ),
@@ -261,7 +285,7 @@ class _Screen3State extends State<Screen3> {
 
                         SizedBox(width:10),
                         CircleAvatar(
-                          radius:48,
+                          radius:35,
 
                           backgroundImage:AssetImage('assets/cute-tiger-cub-enrique-mendez.jpg'),
 
@@ -277,107 +301,128 @@ class _Screen3State extends State<Screen3> {
               Container(
                 height:600,
                 child:StreamBuilder<QuerySnapshot>(
-
                   stream: _usersStream,
                   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                     if (snapshot.hasError) {
                       return Text('Something went wrong');
                     }
-
+                    else
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Text("Loading");
                     }
-
-                    return new ListView(
-
-                      children: snapshot.data!.docs.map((DocumentSnapshot document) {
-                        Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-
-                        return Container(
-                          child:SingleChildScrollView(
-                            child:Column(
-                              children:<Widget> [
-                                Container(
-                                  width: MediaQuery.of(context).size.width,
-                                  height: 300,
-
-                                  decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                      fit: BoxFit.fill,
-                                      image: NetworkImage(data['url']),
-                                    ),
-                                  ),
-
-                                ),
-
-
-                                SizedBox(height:25),
-
-                                Column(
-                                    crossAxisAlignment:CrossAxisAlignment.start,
-                                    children:<Widget>[
-
-                                      Text(" ${data['desc']} "),
-                                      SizedBox(height:14),
-                                      Container(
-                                        padding:EdgeInsets.only(left:10),
-                                        child:CircleAvatar(
-
-                                          radius:30,
-                                          backgroundImage:NetworkImage(data['who_posted_url']),
+                    else {
+                      var postdata = snapshot.data!.docs;
+                      return new ListView.builder(
+                        itemCount: snapshot.data!.docs.length,
+                        itemBuilder: (context,index)
+                        {
+                            return Container(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: <Widget>[
+                                    Container(
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width,
+                                      height: 300,
+                                      decoration: BoxDecoration(
+                                        image: DecorationImage(
+                                          fit: BoxFit.fill,
+                                          image: NetworkImage(postdata[index]['url']),
                                         ),
                                       ),
-                                      SizedBox(height:8),
+                                    ),
+                                    Row(
+                                        children: <Widget>[
+                                          IconButton(
+                                            onPressed: () {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(SnackBar(
+                                                  content: Text(
+                                                      'You liked this post')));
 
+                                                   c++;
+                                              if (c%2==1)
+                                               updatelike(postdata[index].id,postdata[index]['who_liked']);
+                                              else
+                                                unupdatelike(postdata[index].id,postdata[index]['who_liked']);
+                                             // Navigator.pushNamed(context, '/three');
+                                            },
+                                            icon: Icon(Icons.favorite_border,
+                                              color: Colors.pink,),
+
+
+                                          ),
+                                          Container(width: 10),
+                                          Icon(Icons.chat_bubble_outline),
+                                          Container(width: 10),
+                                          Icon(Icons.share),
+
+                                        ]
+                                    ),
                                       Row(
-                                          children:<Widget>[
-                                            Text(" ${data['who_posted']} ",textAlign: TextAlign.left,),
-                                            Text("   ${formatTimestamp(data['time'])} " ,textAlign: TextAlign.left,)
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children:<Widget>[
+                                          Text("  ${postdata[index]['who_liked'].length}  likes"),
 
-                                          ]
-
+                                        ]
                                       ),
+                                    SizedBox(height :10),
+                                    Column(
+                                        crossAxisAlignment: CrossAxisAlignment
+                                            .start,
+                                        children: <Widget>[
+
+                                          Text("  ${postdata[index]['desc']} "),
+                                          SizedBox(height: 14),
+                                          Row(
+                                            children:<Widget>[
+                                              Container(
+                                                padding: EdgeInsets.only(left:2),
+                                                child: CircleAvatar(
+
+                                                  radius: 30,
+                                                  backgroundImage: NetworkImage(
+                                                      postdata[index]['who_posted_url']),
+                                                ),
+                                              ),
+
+                                              Row(
+                                                  children: <Widget>[
+                                                    Text(" ${postdata[index]['who_posted']} ",
+                                                      textAlign: TextAlign.left,),
+                                                    Text("     ${formatTimestamp(postdata![index]['time'])} ",
+                                                      textAlign: TextAlign.left,)
+
+                                                  ]
+
+                                              ),
 
 
-                                    ]
+
+                                            ]
+                                          )
+
+                                        ]
+                                    ),
+
+
+                                  ],
                                 ),
-                                Row(
-                                    children:<Widget>[
-                                      IconButton(
-                                        onPressed:()
-                                        {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(SnackBar(content: Text('You liked this post')));
-                                        },
-                                        icon:Icon(Icons.favorite_border,color: Colors.pink,),
+                              ),
 
 
-                                      ),
-                                      Container(width:10),
-                                      Icon(Icons.chat_bubble_outline),
-                                      Container(width:10),
-                                      Icon(Icons.share),
-
-                                    ]
-                                ),
+                            );
 
 
-                              ],
-                            ),
-                          ),
+                        },
 
 
 
-                        );
-
-
-                      }).toList(),
-
-
-                    );
-                  },
-
-                ),
+                      );
+                    };
+                  }),
 
 
               ),

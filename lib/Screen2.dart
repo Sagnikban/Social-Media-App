@@ -22,6 +22,7 @@ class _Screen2State extends State<Screen2> {
   late String uid;
   late String caption="enjoy";
   late String bio="enjoy";
+  late int followers=0;
   late String photoURL="https://www.seekpng.com/png/detail/966-9665493_my-profile-icon-blank-profile-image-circle.png";
   bool showSpinner=false;
 
@@ -102,6 +103,7 @@ class _Screen2State extends State<Screen2> {
                      'bio':bio!,
                      'photoURL':photoURL!,
                       'caption':caption!,
+                       'followers':followers!,
 
 
                    }   );

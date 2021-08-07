@@ -1,34 +1,72 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:get/get.dart';
+import 'DataController.dart';
 import 'Screen3.dart';
 import 'Screen4.dart';
 import 'Screen5.dart';
-
 class  Screen4 extends StatefulWidget {
-
   @override
   _Screen4State createState() => _Screen4State();
 }
-
 class _Screen4State extends State<Screen4> {
   var _auth = FirebaseAuth.instance;
   late var currentUser = _auth.currentUser;
+  final TextEditingController searchController =TextEditingController();
+  bool isExecuted=false;
+  late QuerySnapshot snapshot;
+  Widget searchData()
+  {
+    return ListView.builder
+      (
+        itemCount: snapshot.docs!.length,
+        itemBuilder:(BuildContext context ,int index)
+        {
+          return ListTile
+            (
+            leading:CircleAvatar(
+             // backgroundImage: NetworkImage(snapshot.data.docs[index]!['photoURl']),
+            ),
+            //title:Text(snapshot.data.docs[index]!['username']),
+          );
+        }
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
+
     var size=MediaQuery.of(context).size;
     return MaterialApp(
-
-
-        home:Scaffold(
+      home:Scaffold(
+          appBar: AppBar(
+            actions:[
+              GetBuilder<DataController>(
+                init:DataController(),
+                builder:(val) {
+                  return IconButton(icon: Icon(Icons.search),
+                      onPressed: () {
+                        val.queryData(searchController.text).then((value) {
+                          snapshot = value;
+                          isExecuted = true;
+                        }
+                        );
+                        searchData();
+                      }
+                  );
+                }
+              )
+            ]
+          ),
        body:SafeArea(
          child:SingleChildScrollView(
            child:Column(
               children:<Widget>
          [
                SizedBox(height:10),
-                Row(
+              /*  Row(
                   children: <Widget>[
                     SizedBox(
                       width: 15,
@@ -36,24 +74,44 @@ class _Screen4State extends State<Screen4> {
                     Container(
                       width:size.width-30,
                       height: 45,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: Colors.grey.shade300),
-                      child: TextField(
-                        decoration: InputDecoration(
-                            border: InputBorder.none,
-                            prefixIcon: Icon(
-                              Icons.search,
-                              // color:  Colors.grey,
-                            )),
-                        cursorColor: Colors.black,
-                      ),
+                      child:Row(
+                        children:<Widget>[
+                           TextField(
+                            decoration: InputDecoration(
+                              hintText: 'Search for any user',
+                              hintStyle: TextStyle(color:Colors.black87),
+                              border: InputBorder.none,),
+                              GetBuilder<DataController>(
+                                  init:DataController(),
+                                  builder:(val){
+                                    return IconButton(icon: Icon(Icons.search),
+                                      onPressed: ()
+                                      {
+                                        val.queryData(searchController.text).then((value)
+                                        {
+                                          snapshot=value;
+                                          isExecuted=true;
+                                        }
+                                        );
+                                        searchData();
+                                      },
+                                    );
+                                  }
+                              ),
+
+                            cursorColor: Colors.black,
+
+                          ),
+
+                        ]
+                      )
+
                     ),
                     SizedBox(
                       width: 15,
                     )
                   ],
-                ),
+                ),*/
 
 
                  SizedBox(height:15),

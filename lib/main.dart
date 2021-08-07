@@ -11,6 +11,7 @@ import 'Screen4.dart';
 import 'Screen5.dart';
 import 'Screen6.dart';
 import 'Screen7.dart';
+import 'Screen8.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +42,7 @@ class _MyAppState extends State<MyApp> {
           '/five':(context)=> Screen5(),
           '/six':(context)=> Screen6(),
           '/seven':(context)=> Screen7(),
+          '/eight':(context)=> Screen8(),
 
            },
 
