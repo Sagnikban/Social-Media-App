@@ -8,12 +8,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
-import 'Screen2.dart';
-import 'Screen3.dart';
 import 'Screen4.dart';
 import 'Screen5.dart';
 import 'SCreen7.dart';
 import 'Screen8.dart';
+
 class  Screen5 extends StatefulWidget {
   const Screen5(
       {Key? key})
@@ -30,6 +29,7 @@ class _Screen5State extends State<Screen5> {
   final picker = ImagePicker();
   late String uid="";
   late int followers=0;
+  late int following =0;
   late var currentUser = _auth.currentUser;
 
    getdetails () async {
@@ -45,6 +45,7 @@ class _Screen5State extends State<Screen5> {
           username = doc['username'];
           bio=doc['bio'];
           followers=doc['followers'];
+          following=doc['following'];
 
         });
         });
@@ -245,7 +246,7 @@ class _Screen5State extends State<Screen5> {
                                               Container(width: 10),
                                               Container(
                                                 width: 80,
-                                                child: Text('    162  following'),
+                                                child: Text('    ${following}  following'),
                                               ),
 
 

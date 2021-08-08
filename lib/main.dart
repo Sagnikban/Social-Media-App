@@ -12,7 +12,8 @@ import 'Screen5.dart';
 import 'Screen6.dart';
 import 'Screen7.dart';
 import 'Screen8.dart';
-
+import 'Screen9.dart';
+import 'Screen10.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -43,6 +44,8 @@ class _MyAppState extends State<MyApp> {
           '/six':(context)=> Screen6(),
           '/seven':(context)=> Screen7(),
           '/eight':(context)=> Screen8(),
+          '/nine':(context)=> Screen9(uid: '',),
+          '/ten':(context)=>  Screen10(uid:'',),
 
            },
 
