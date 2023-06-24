@@ -1,6 +1,6 @@
-# untitled
+# Social Media App
 
-A new Flutter project.Instagram clone.
+A social media application using Flutter and Firebase
 
 ## Getting Started
 
